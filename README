@@ -1,0 +1,13 @@
+MATHEMATICAL EXPRESSION PARSER
+
+Takes an expression like "1 - (0.5 * 1.1)^2" and evaluates it.
+Supported infix operators: + - * / ^
+
+Expressions can either be passed by command-line arguments or entering the
+parser in interactive mode.
+
+Planned features:
+	> Built-in constants
+	> Built-in functions (sin, ln, etc...)
+	> User-defined variables
+	> User-defined functions
