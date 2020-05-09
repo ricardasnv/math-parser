@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Some automated lit_tests
+# Some automated tests
 # Every test case is passed as a command line argument
 import pexpect
 
