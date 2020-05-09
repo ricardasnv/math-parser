@@ -7,7 +7,7 @@ Expressions can either be passed by command-line arguments or entering the
 parser in interactive mode.
 
 Planned features:
-	> Built-in constants
-	> Built-in functions (sin, ln, etc...)
+	> Built-in constants -- DONE
+	> Built-in functions (sin, ln, etc...) -- DONE
 	> User-defined variables
 	> User-defined functions

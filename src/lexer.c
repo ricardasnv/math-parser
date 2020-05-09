@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "lexer.h"
+#include "error.h"
 #include "operators.h"
 
 typedef enum lexer_state_enum {
@@ -52,12 +53,6 @@ word* get_words_from_string(char* passed_str) {
 		update_lexer_state(str[i], &state);
 
 		// ==== PHASE 2 ====
-		// if finished reading operator
-		if (is_operator(buffer)) {
-			ws_push(word_stack, make_operator_word(buffer));
-			strcpy(buffer, "");
-		}
-
 		// if finished reading separator
 		if (prev_state == READING_SEPARATOR) {
 			ws_push(word_stack, make_separator_word(separator_type(buffer[0])));
@@ -67,6 +62,19 @@ word* get_words_from_string(char* passed_str) {
 		// if finished reading number
 		if (prev_state == READING_NUMBER && state != READING_NUMBER) {
 			ws_push(word_stack, make_number_word(strtod(buffer, NULL)));
+			strcpy(buffer, "");
+		}
+
+		// if finished reading operator
+		if (prev_state == READING_OPERATOR && state != READING_OPERATOR) {
+			if (is_operator(buffer)) {
+				ws_push(word_stack, make_operator_word(buffer));
+			} else {
+				char msg[80];
+				sprintf(msg, "Bad operator %s", buffer);
+				warning("get_words_from_string", msg);
+			}
+
 			strcpy(buffer, "");
 		}
 

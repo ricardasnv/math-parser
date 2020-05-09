@@ -14,6 +14,7 @@ void help();
 void version();
 void parser();
 void lexer();
+void env();
 void debug();
 
 void run_command(char* command) {
@@ -27,6 +28,8 @@ void run_command(char* command) {
 		parser();
 	} else if (strcmp(command, "lexer") == 0) {
 		lexer();
+	} else if (strcmp(command, "env") == 0) {
+		env();
 	} else if (strcmp(command, "debug") == 0) {
 		debug();
 	} else {
@@ -45,6 +48,7 @@ void help() {
 	printf("  version - show version number.\n");
 	printf("  parser  - enter mathematical expression parser.\n");
 	printf("  lexer   - enter lexer debugging mode.\n");
+	printf("  env     - show current environment.\n");
 }
 
 void version() {
@@ -65,10 +69,10 @@ void parser() {
 		}
 
 		word* words = get_words_from_string(input);
-		word* postfix = infix_to_postfix(words);
+		word* postfix = infix_to_postfix(words, global_env);
 
 		printf("Contents of evaluator stack:\n");
-		print_words(eval_postfix(postfix));
+		print_words(eval_postfix(postfix, global_env));
 
 		ws_free(words);
 		ws_free(postfix);
@@ -97,6 +101,11 @@ void lexer() {
 	}
 }
 
+void env() {
+	printf("Current environment:\n");
+	print_env(global_env);
+}
+
 void debug() {
 	char* input;
 
@@ -109,13 +118,13 @@ void debug() {
 		}
 
 		word* words = get_words_from_string(input);
-		word* tmp = infix_to_postfix(words);
+		word* tmp = infix_to_postfix(words, global_env);
 		printf("Input:\n");
 		print_words(words);
 		printf("In RPN:\n");
 		print_words(tmp);
 		printf("Evaluated to:\n");
-		print_words(eval_postfix(tmp));
+		print_words(eval_postfix(tmp, global_env));
 
 		ws_free(words);
 		ws_free(tmp);
