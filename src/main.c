@@ -9,14 +9,10 @@
 #include "commands.h"
 #include "environment.h"
 
-void tmp() {};
-
 int main(int argc, char** argv) {
 	char* input;
 
 	init_global_env();
-
-	tmp();
 
 	// if a string was given as argv[1], parse it
 	if (argc == 2) {

@@ -8,8 +8,8 @@ typedef struct {
 	int prec;   // precedence
 } operator_struct;
 
-#define VALID_OPERATOR_CHARS "+-*/^"
-#define NUM_OF_OPERATORS 5
+#define VALID_OPERATOR_CHARS "+-*/^="
+#define NUM_OF_OPERATORS 6
 extern const operator_struct VALID_OPERATORS[NUM_OF_OPERATORS];
 
 // Returns 1 if op1 has higher precedence

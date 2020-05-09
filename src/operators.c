@@ -4,6 +4,7 @@
 
 // All operators ordered from highest to lowest precedence
 const operator_struct VALID_OPERATORS[NUM_OF_OPERATORS] = {
+	{"=", 0},
 	{"+", 1},
 	{"-", 1},
 	{"*", 2},

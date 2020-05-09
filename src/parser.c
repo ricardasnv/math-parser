@@ -101,13 +101,9 @@ word* eval_postfix(word* base, environment* env) {
 			// lookup symbol in current environment
 			environment* result = resolve_symbol(top, env);
 
-			// if symbol cannot be resolved
+			// if symbol cannot be resolved, then evaluate to itself
 			if (result == NULL) {
-				char msg[80];
-				snprintf(msg, 80, "Unknown symbol %s. Evaluating to zero.", top->sym);
-				warning("eval_postfix", msg);
-				ws_pop(evalstack);
-				ws_push(evalstack, make_number_word(0));
+				// do not pop symbol off evalstack
 				continue;
 			}
 
@@ -124,23 +120,56 @@ word* eval_postfix(word* base, environment* env) {
 				}
 
 				ws_pop(evalstack); // pop off function name before calling
-				apply_function(result, evalstack);
-			} else if (result->type == VARIABLE) {
-				// if symbol is resolved to a variable, substitute its numeric value
-				// NOTE: copy before pushing to avoid problems with multiple instances of same symbol
-				ws_pop(evalstack);
-				ws_push(evalstack, ws_copy(result->val));
+				apply_function(result, evalstack, env);
 			}
 		} else if (is_operator_word(top)) {
-			apply_operator(evalstack);
+			apply_operator(evalstack, env);
 		}
 	}
+
+	// Evaluate leftover symbols
+	word* tmp = make_base_word();
+	while (!ws_isempty(evalstack)) {
+		ws_push(tmp, ws_copy(ws_pop(evalstack)));
+
+		if (ws_peek(tmp)->type == SYMBOL) {
+			environment* result = resolve_symbol(ws_peek(tmp), env);
+
+			if (result != NULL) {
+				ws_pop(tmp);
+				ws_push(tmp, ws_copy(result->val));
+			}
+		}
+	}
+
+	ws_free(evalstack);
+	ws_reverse(tmp);
+	evalstack = tmp;
 
 	return evalstack;
 }
 
+word* eval_symbol_var(word* sym, environment* env) {
+	environment* result = resolve_symbol(sym, env);
+
+	if (result == NULL) {
+		char msg[80];
+		snprintf(msg, 80, "Failed to evaluate symbol %s.", sym->sym);
+		warning("eval_symbol_var", msg);
+		return ws_copy(sym);
+	}
+
+	if (result->type != VARIABLE) {
+		char msg[80];
+		snprintf(msg, 80, "Symbol %s is not a variable.", sym->sym);
+		warning("eval_symbol_var", msg);
+	}
+
+	return ws_copy(result->val);
+}
+
 // apply operator to two operands
-void apply_operator(word* evalstack) {
+void apply_operator(word* evalstack, environment* env) {
 	word* op;
 	word* arg2;
 	word* arg1;
@@ -154,13 +183,43 @@ void apply_operator(word* evalstack) {
 
 	if (ws_height(evalstack) < 2) {
 		char msg[80];
-		sprintf(msg, "Not enough arguments for operator %s.", op->op);
+		snprintf(msg, 80, "Not enough arguments for operator %s.", op->op);
 		warning("apply_operator", msg);
 		return;
 	}
 
 	arg2 = ws_pop(evalstack);
 	arg1 = ws_pop(evalstack);
+
+	// Attempt to evaluate arguments if any symbols were passed
+	if (arg1->type == SYMBOL) {
+		arg1 = eval_symbol_var(arg1, env);
+
+		if (arg1 == NULL) {
+			char msg[80];
+			snprintf(msg, 80, "First argument to operator %s couldn't be resolved.", op->op);
+			warning("apply_operator", msg);
+			return;
+		}
+	}
+
+	if (arg2->type == SYMBOL) {
+		arg2 = eval_symbol_var(arg2, env);
+
+		if (arg2 == NULL) {
+			char msg[80];
+			snprintf(msg, 80, "Second argument to operator %s couldn't be resolved.", op->op);
+			warning("apply_operator", msg);
+			return;
+		}
+	}
+
+	// If either argument is still not a number after resolving symbols
+	if (arg1->type != NUMBER || arg2->type != NUMBER) {
+		char msg[80];
+		snprintf(msg, 80, "Non-number given to operator %s.", op->op);
+		warning("apply_operator", msg);
+	}
 
 	word* result = make_number_word(0);
 
@@ -184,8 +243,8 @@ void apply_operator(word* evalstack) {
 	ws_push(evalstack, result);
 }
 
-void apply_function(environment* func, word* argstack) {
-	func->f(argstack);
+void apply_function(environment* func, word* argstack, environment* env) {
+	func->f(argstack, env);
 }
 
 int is_left_bracket(word* w) {

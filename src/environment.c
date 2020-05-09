@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "environment.h"
+#include "parser.h"
 #include "error.h"
 
 environment* global_env = NULL;
@@ -23,6 +24,9 @@ void init_global_env() {
 	define_variable(e_key, e_val, global_env);
 
 	// Functions
+	word* define_key = make_symbol_word("define");
+	define_function(define_key, define_wrapper, 2, global_env);
+
 	word* sin_key = make_symbol_word("sin");
 	define_function(sin_key, sin_wrapper, 1, global_env);
 
@@ -63,8 +67,21 @@ void define_variable(word* key, word* val, environment* env) {
 	} else {
 		environment* cursor = env;
 
+		// Walk the environment to the end
 		while (cursor->next != NULL) {
+			// If symbol is already assigned a value, rewrite it
+			if (cursor->key != NULL && strcmp(key->sym, cursor->key->sym) == 0) {
+				cursor->val->val = val->val;
+				return;
+			}
+
 			cursor = cursor->next;
+		}
+
+		// Check last pair in environment
+		if (cursor->key != NULL && strcmp(key->sym, cursor->key->sym) == 0) {
+			cursor->val->val = val->val;
+			return;
 		}
 
 		// Append new pair to env
@@ -72,7 +89,7 @@ void define_variable(word* key, word* val, environment* env) {
 	}
 }
 
-void define_function(word* key, void (*f)(word* argstack), int argc, environment* env) {
+void define_function(word* key, void (*f)(word* argstack, environment* env), int argc, environment* env) {
 	environment* new_pair = malloc(sizeof(environment));
 	new_pair->next = NULL;
 	new_pair->type = FUNCTION;
@@ -117,27 +134,121 @@ void print_env(environment* env) {
 	}
 }
 
-void sin_wrapper(word* argstack) {
+void define_wrapper(word* argstack, environment* env) {
+	word* value = ws_pop(argstack);
+	word* target = ws_pop(argstack);
+
+	if (!is_symbol_word(target)) {
+		char msg[80];
+		snprintf(msg, 80, "Cannot assign to non-symbol. Returning same value.", target->sym);
+		warning("define_wrapper", msg);
+	}
+
+	if (!is_number_word(value)) {
+		char msg[80];
+		snprintf(msg, 80, "Attempting to assign non-number value to symbol %s.", target->sym);
+		warning("define_wrapper", msg);
+	}
+
+	define_variable(target, value, global_env);
+	ws_push(argstack, target);
+}
+
+void sin_wrapper(word* argstack, environment* env) {
 	word* arg = ws_pop(argstack);
+
+	if (is_symbol_word(arg)) {
+		arg = eval_symbol_var(arg, env);
+
+		if (arg == NULL) {
+			ws_push(argstack, arg);
+			return;
+		}
+	}
+
+	if (!is_number_word(arg)) {
+		warning("sin_wrapper", "Non-number passed as argument where number is expected.");
+		ws_push(argstack, arg);
+		return;
+	}
+
 	word* result = make_number_word(sin(arg->val));
 	ws_push(argstack, result);
 }
 
-void cos_wrapper(word* argstack) {
+void cos_wrapper(word* argstack, environment* env) {
 	word* arg = ws_pop(argstack);
+
+	if (is_symbol_word(arg)) {
+		arg = eval_symbol_var(arg, env);
+
+		if (arg == NULL) {
+			ws_push(argstack, arg);
+			return;
+		}
+	}
+
+	if (!is_number_word(arg)) {
+		warning("cos_wrapper", "Non-number passed as argument where number is expected.");
+		ws_push(argstack, arg);
+		return;
+	}
+
 	word* result = make_number_word(cos(arg->val));
 	ws_push(argstack, result);
 }
 
-void tan_wrapper(word* argstack) {
+void tan_wrapper(word* argstack, environment* env) {
 	word* arg = ws_pop(argstack);
+
+	if (is_symbol_word(arg)) {
+		arg = eval_symbol_var(arg, env);
+
+		if (arg == NULL) {
+			ws_push(argstack, arg);
+			return;
+		}
+	}
+
+	if (!is_number_word(arg)) {
+		warning("tan_wrapper", "Non-number passed as argument where number is expected.");
+		ws_push(argstack, arg);
+		return;
+	}
+
 	word* result = make_number_word(tan(arg->val));
 	ws_push(argstack, result);
 }
 
-void log_wrapper(word* argstack) {
+void log_wrapper(word* argstack, environment* env) {
 	word* log_base = ws_pop(argstack);
 	word* log_arg = ws_pop(argstack);
+
+	if (is_symbol_word(log_base)) {
+		log_base = eval_symbol_var(log_base, env);
+
+		if (log_base == NULL) {
+			ws_push(argstack, log_base);
+			return;
+		}
+	}
+
+	if (is_symbol_word(log_arg)) {
+		log_arg = eval_symbol_var(log_arg, env);
+
+		if (log_arg == NULL) {
+			ws_push(argstack, log_arg);
+			return;
+		}
+	}
+
+	if (!is_number_word(log_arg) || !is_number_word(log_base)) {
+		warning("log_wrapper", "Non-number passed as argument where number is expected.");
+		ws_push(argstack, log_arg);
+		ws_push(argstack, log_base);
+		return;
+	}
+
 	word* result = make_number_word(log(log_arg->val) / log(log_base->val));
 	ws_push(argstack, result);
 }
