@@ -37,10 +37,10 @@ word* make_symbol_word(char* sym) {
 	return w;
 }
 
-word* make_bracket_word(int facing) {
+word* make_separator_word(int sep) {
 	word* w = malloc(sizeof(word));
-	w->type = BRACKET;
-	w->facing = facing;
+	w->type = SEPARATOR;
+	w->sep = sep;
 	w->next = NULL;
 	return w;
 }
@@ -61,8 +61,8 @@ int is_symbol_word(word* w) {
 	return w->type == SYMBOL;
 }
 
-int is_bracket_word(word* w) {
-	return w->type == BRACKET;
+int is_separator_word(word* w) {
+	return w->type == SEPARATOR;
 }
 
 int ws_isempty(word* base) {
@@ -152,7 +152,7 @@ void ws_reverse(word* base) {
 }
 
 void print_word(word* w) {
-	char facing_str[6];
+	char repr[32];
 	
 	printf("  (");
 
@@ -169,9 +169,12 @@ void print_word(word* w) {
 	case SYMBOL:
 		printf("symbol, %s", w->sym);
 		break;
-	case BRACKET:
-		w->facing == LEFT ? strcpy(facing_str, "LEFT") : strcpy(facing_str, "RIGHT");
-		printf("bracket, %s", facing_str);
+	case SEPARATOR:
+		if (w->sep == LBRACKET) strcpy(repr, "left bracket");
+		if (w->sep == RBRACKET) strcpy(repr, "right bracket");
+		if (w->sep == ARGSEP) strcpy(repr, "argument separator");
+		if (w->sep == EXPRSEP) strcpy(repr, "expression separator");
+		printf("%s", repr);
 		break;
 	default:
 		printf("unknown type");

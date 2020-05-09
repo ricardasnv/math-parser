@@ -65,12 +65,13 @@ void parser() {
 		}
 
 		word* words = get_words_from_string(input);
-		word* rpn = infix_to_rpn(words);
+		word* postfix = infix_to_postfix(words);
 
-		printf("%f\n", eval_rpn(rpn)->val);
+		printf("Contents of evaluator stack:\n");
+		print_words(eval_postfix(postfix));
 
 		ws_free(words);
-		ws_free(rpn);
+		ws_free(postfix);
 		free(input);
 	}
 }
@@ -108,12 +109,13 @@ void debug() {
 		}
 
 		word* words = get_words_from_string(input);
-		word* tmp = infix_to_rpn(words);
+		word* tmp = infix_to_postfix(words);
 		printf("Input:\n");
 		print_words(words);
 		printf("In RPN:\n");
 		print_words(tmp);
-		printf("Evaluated to: %f\n", eval_rpn(tmp)->val);
+		printf("Evaluated to:\n");
+		print_words(eval_postfix(tmp));
 
 		ws_free(words);
 		ws_free(tmp);

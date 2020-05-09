@@ -10,7 +10,7 @@ typedef enum lexer_state_enum {
 	READING_NUMBER,
 	READING_OPERATOR,
 	READING_SYMBOL,
-	READING_BRACKET
+	READING_SEPARATOR
 } lexer_state;
 
 void update_lexer_state(char c, lexer_state* state);
@@ -22,8 +22,9 @@ int is_letter(char c);
 int is_whitespace(char c);
 int is_operator(char* str);
 int is_part_of_operator(char c);
-int is_bracket(char c);
-int bracket_facing(char c);
+int is_separator(char c);
+
+int separator_type(char c);
 
 // ==== Public definitions ====
 word* get_words_from_string(char* passed_str) {
@@ -57,9 +58,9 @@ word* get_words_from_string(char* passed_str) {
 			strcpy(buffer, "");
 		}
 
-		// if finished reading bracket
-		if (prev_state == READING_BRACKET) {
-			ws_push(word_stack, make_bracket_word(bracket_facing(buffer[0])));
+		// if finished reading separator
+		if (prev_state == READING_SEPARATOR) {
+			ws_push(word_stack, make_separator_word(separator_type(buffer[0])));
 			strcpy(buffer, "");
 		}
 
@@ -94,8 +95,8 @@ void update_lexer_state(char c, lexer_state* state) {
 		*state = READING_NUMBER;
 	} else if (is_part_of_operator(c)) {
 		*state = READING_OPERATOR;
-	} else if (is_bracket(c)) {
-		*state = READING_BRACKET;
+	} else if (is_separator(c)) {
+		*state = READING_SEPARATOR;
 	} else if (is_whitespace(c)) {
 		*state = SKIPPING;
 	} else {
@@ -147,16 +148,26 @@ int is_part_of_operator(char c) {
 	return 0;
 }
 
-int is_bracket(char c) {
-	if (c == '(' || c == ')') return 1;
-	if (c == '[' || c == ']') return 1;
-	if (c == '{' || c == '}') return 1;
+int is_separator(char c) {
+	if (strstr("();,", char_to_str(c)) != NULL) {
+		return 1;
+	}
+
 	return 0;
 }
 
-int bracket_facing(char c) {
-	if (c == '(' || c == '[' || c == '{') return LEFT;
-	if (c == ')' || c == ']' || c == '}') return RIGHT;
-	return -1; // not a bracket
+int separator_type(char c) {
+	switch (c) {
+	case '(':
+		return LBRACKET;
+	case ')':
+		return RBRACKET;
+	case ',':
+		return ARGSEP;
+	case ';':
+		return EXPRSEP;
+	default:
+		return -1;
+	}
 }
 

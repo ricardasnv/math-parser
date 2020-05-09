@@ -3,26 +3,29 @@
 
 typedef struct word_struct {
 	struct word_struct* next;
-	enum {BASE, NUMBER, OPERATOR, SYMBOL, BRACKET} type;
+	enum {BASE, NUMBER, OPERATOR, SYMBOL, SEPARATOR} type;
 	union {
-		double val;                // if number
-		char* op;                  // if operator
-		char* sym;                 // if symbol
-		enum {LEFT, RIGHT} facing; // if bracket
+		double val; // if number
+		char* op;   // if operator
+		char* sym;  // if symbol
+		enum {      // if separator
+			LBRACKET, RBRACKET, // brackets
+			ARGSEP, EXPRSEP     // argument/expression separator
+		} sep;
 	};
 } word;
 
 word* make_base_word();
 word* make_number_word(double val);
 word* make_operator_word(char* op);
-word* make_bracket_word(int facing);
 word* make_symbol_word(char* sym);
+word* make_separator_word(int sep);
 
 int is_base_word(word* w);
 int is_number_word(word* w);
 int is_operator_word(word* w);
-int is_bracket_word(word* w);
 int is_symbol_word(word* w);
+int is_separator_word(word* w);
 
 // basic word stack operations
 int ws_isempty(word* base); // returns 1 if src only has 1 word of type BASE

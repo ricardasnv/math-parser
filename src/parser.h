@@ -3,8 +3,8 @@
 
 #include "word.h"
 
-word* infix_to_rpn(word* base);
-word* eval_rpn(word* base);
+word* infix_to_postfix(word* base);
+word* eval_postfix(word* base);
 
 void apply_operator(word* evalstack);
 
