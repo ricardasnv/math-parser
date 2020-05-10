@@ -90,7 +90,7 @@ word* eval_postfix(word* base, environment* env) {
 	word* rev = ws_copy(base);
 	word* evalstack = make_base_word();
 
-	// reverse given stack to read from its bottom
+	// reverse given stack so that the first word is on top
 	ws_reverse(rev);
 
 	while (!ws_isempty(rev)) {
@@ -103,50 +103,80 @@ word* eval_postfix(word* base, environment* env) {
 
 			// if symbol cannot be resolved, then evaluate to itself
 			if (result == NULL) {
-				// do not pop symbol off evalstack
+				// leave the symbol on the evalstack
 				continue;
+			}
+
+			// if variable, keep resolving the value until the result is a number
+			while (result != NULL && result->type == VARIABLE) {
+				// pop off the symbol name and push its resolved value
+				ws_pop(evalstack);
+				ws_push(evalstack, ws_copy(result->val));
+
+				// if resolved value is another symbol, resolve it again
+				// if it is a number, break out of the loop and move on to the next word
+				// otherwise raise a warning and break out of the loop
+				if (is_symbol_word(result->val)) {
+					result = resolve_symbol(result->val, env);
+				} else if (is_number_word(result->val)) {
+					break;
+				} else {
+					char msg[80];
+					snprintf(msg, 80, "Failed to resolve symbol %s.", result->key->sym);
+					warning("eval_postfix", msg);
+					break;
+				}
 			}
 
 			// if symbol is resolved to a function, apply it to arguments currently on evalstack
 			if (result->type == FUNCTION) {
-				// stack size is argc+1 (including function name symbol)
-				int given_argc = ws_height(evalstack) - 1;
-
-				if (given_argc < result->argc) {
-					char msg[80];
-					snprintf(msg, 80, "Not enough arguments for function %s (expected %d, got %d)", top->sym, result->argc, given_argc);
-					warning("eval_postfix", msg);
-					continue;
-				}
-
-				ws_pop(evalstack); // pop off function name before calling
-				apply_function(result, evalstack, env);
+				apply_function(result->fun, evalstack, env);
 			}
 		} else if (is_operator_word(top)) {
 			apply_operator(evalstack, env);
 		}
 	}
 
-	// Evaluate leftover symbols
-	word* tmp = make_base_word();
-	while (!ws_isempty(evalstack)) {
-		ws_push(tmp, ws_copy(ws_pop(evalstack)));
+	return evalstack;
+}
 
-		if (ws_peek(tmp)->type == SYMBOL) {
-			environment* result = resolve_symbol(ws_peek(tmp), env);
+void apply_function(function* f, word* stack, environment* env) {
+	// Pop the function name off the stack
+	word* function_symbol = ws_pop(stack);
 
-			if (result != NULL) {
-				ws_pop(tmp);
-				ws_push(tmp, ws_copy(result->val));
-			}
-		}
+	// Evaluate the arguments
+	word* args = eval_postfix(stack, env);
+
+	// Make a copy of formal_args to avoid altering the function's definition
+	word* formal_args_copy = ws_copy(f->formal_args);
+
+	int argc_provided = ws_height(args);
+	int argc_expected = ws_height(f->formal_args);
+
+	if (argc_provided < argc_expected) {
+		char msg[80];
+		snprintf(msg, 80, "Not enough arguments to function %s. (expected %d, provided %d)", function_symbol->sym, argc_expected, argc_provided);
+		warning("apply_function", msg);
+		return;
 	}
 
-	ws_free(evalstack);
-	ws_reverse(tmp);
-	evalstack = tmp;
+	// Build a local environment with the actual arguments
+	environment* local_env = make_empty_env();
 
-	return evalstack;
+	for (int i = 0; i < argc_expected; i++) {
+		word* current_formal_arg = ws_pop(formal_args_copy);
+		word* current_actual_arg = ws_pop(stack);
+		define_variable(current_formal_arg, current_actual_arg, local_env);
+	}
+
+	// link the function's local environment to the parent environment
+	link_env(local_env, env);
+
+	// evaluate the function in its local environment
+	word* result = eval_postfix(f->body, local_env);
+
+	// push result to stack
+	ws_push(stack, ws_peek(result));
 }
 
 word* eval_symbol_var(word* sym, environment* env) {
@@ -169,27 +199,27 @@ word* eval_symbol_var(word* sym, environment* env) {
 }
 
 // apply operator to two operands
-void apply_operator(word* evalstack, environment* env) {
+void apply_operator(word* stack, environment* env) {
 	word* op;
 	word* arg2;
 	word* arg1;
 
-	if (ws_isempty(evalstack)) {
+	if (ws_isempty(stack)) {
 		warning("apply_operator", "Empty stack given to apply_operator.");
 		return;
 	}
 
-	op = ws_pop(evalstack);
+	op = ws_pop(stack);
 
-	if (ws_height(evalstack) < 2) {
+	if (ws_height(stack) < 2) {
 		char msg[80];
 		snprintf(msg, 80, "Not enough arguments for operator %s.", op->op);
 		warning("apply_operator", msg);
 		return;
 	}
 
-	arg2 = ws_pop(evalstack);
-	arg1 = ws_pop(evalstack);
+	arg2 = ws_pop(stack);
+	arg1 = ws_pop(stack);
 
 	// Attempt to evaluate arguments if any symbols were passed
 	if (arg1->type == SYMBOL) {
@@ -240,11 +270,7 @@ void apply_operator(word* evalstack, environment* env) {
 		// don't know how to evaluate operator
 	}
 
-	ws_push(evalstack, result);
-}
-
-void apply_function(environment* func, word* argstack, environment* env) {
-	func->f(argstack, env);
+	ws_push(stack, result);
 }
 
 int is_left_bracket(word* w) {

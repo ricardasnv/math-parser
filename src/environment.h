@@ -2,32 +2,35 @@
 #define ENVIRONMENT_H
 
 #include "word.h"
+#include "function.h"
 
 // Linked list of key-val mappings
 typedef struct environment_struct {
 	struct environment_struct* next;
 	enum {NONE, VARIABLE, FUNCTION} type;
 	word* key;
-	int argc; // if function, this holds the argument count
 	union {
-		word* val;                                                 // if variable
-		void (*f)(word* argstack, struct environment_struct* env); // if function
+		word* val;     // if variable
+		function* fun; // if function
 	};
 } environment;
 
 extern environment* global_env;
 
+// Initialize global_env with default values
 void init_global_env();
+
+// Basic operations
+environment* make_empty_env();
+void link_env(environment* child, environment* parent);
+
+// Functions for resolving/defining/undefining symbols
 environment* resolve_symbol(word* key, environment* env);
 void define_variable(word* key, word* val, environment* env);
-void define_function(word* key, void (*f)(word* argstack, environment* env), int argc, environment* env);
-void print_env(environment* env);
+void define_function(word* key, function* f, environment* env);
+void undef_symbol(word* key, environment* env);
 
-// Built-in functions
-void define_wrapper(word* argstack, environment* env);
-void sin_wrapper(word* argstack, environment* env);
-void cos_wrapper(word* argstack, environment* env);
-void tan_wrapper(word* argstack, environment* env);
-void log_wrapper(word* argstack, environment* env);
+// Prints all mappings in env
+void print_env(environment* env);
 
 #endif

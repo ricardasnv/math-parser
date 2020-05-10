@@ -2,12 +2,41 @@ MATHEMATICAL EXPRESSION PARSER
 
 Takes an expression like "1 - (0.5 * 1.1)^2" and evaluates it.
 Supported infix operators: + - * / ^
+Expressions can be abstracted using user-defined functions and variables.
 
 Expressions can either be passed by command-line arguments or entering the
 parser in interactive mode.
 
-Planned features:
-	> Built-in constants -- DONE
-	> Built-in functions (sin, ln, etc...) -- DONE
-	> User-defined variables
-	> User-defined functions
+Example session:
+
+Version 1.0 - interactive mode
+Type 'help' for usage instructions.
+>> deffun
+  Function name: circle_area
+  Formal argument list: r
+  Function body: pi*r^2
+>> deffun
+  Function name: square
+  Formal argument list: x
+  Function body: x^2
+>> deffun
+  Function name: sum_of_squares
+  Formal argument list: x y
+  Function body: square(x) + square(y)
+>> parser
+Type 'quit' to exit parser.
+parser>> circle_area(10)
+  Contents of evaluator stack:
+  <word stack base>
+  <number, 314.159265>
+parser>> square(5)
+  Contents of evaluator stack:
+  <word stack base>
+  <number, 25.000000>
+parser>> sum_of_squares(2, 3)
+  Contents of evaluator stack:
+  <word stack base>
+  <number, 13.000000>
+parser>> quit
+>> quit
+

@@ -154,7 +154,7 @@ void ws_reverse(word* base) {
 void print_word(word* w) {
 	char repr[32];
 	
-	printf("  (");
+	printf("<");
 
 	switch (w->type) {
 	case BASE:
@@ -181,7 +181,7 @@ void print_word(word* w) {
 		break;
 	}
 
-	printf(")\n");
+	printf(">\n");
 }
 
 void print_words(word* list) {
