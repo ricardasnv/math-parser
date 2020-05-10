@@ -35,7 +35,7 @@ bifunc_tests = [
 # Tests with user-defined variables
 usrvar_tests = [
 	["define(x, 5); x", 5],
-	["define(testvar, (1.1)^10)", 2.59374246],
+	["define(testvar, (1.1)^10); testvar", 2.59374246],
 	["define(a, 10); define(b, 7); a+b", 17]
 ]
 

@@ -9,53 +9,57 @@
 #include "lexer.h"
 #include "parser.h"
 
-void quit();
-void help();
-void version();
-void parser();
-void lexer();
-void env();
-void debug();
+void run_quit();
+void run_help();
+void run_version();
+void run_parser();
+void run_env();
+void run_lexer();
+void run_eval();
+void run_debug();
 
 void run_command(char* command) {
 	if (strcmp(command, "quit") == 0 || strcmp(command, "q") == 0) {
-		quit();
+		run_quit();
 	} else if (strcmp(command, "help") == 0) {
-		help();
+		run_help();
 	} else if (strcmp(command, "version") == 0) {
-		version();
+		run_version();
 	} else if (strcmp(command, "parser") == 0) {
-		parser();
-	} else if (strcmp(command, "lexer") == 0) {
-		lexer();
+		run_parser();
 	} else if (strcmp(command, "env") == 0) {
-		env();
+		run_env();
+	} else if (strcmp(command, "lexer") == 0) {
+		run_lexer();
+	} else if (strcmp(command, "eval") == 0) {
+		run_eval();
 	} else if (strcmp(command, "debug") == 0) {
-		debug();
+		run_debug();
 	} else {
 		printf("Unknown command \'%s\'. Type \'help\' for a list of valid commands.\n", command);
 	}
 }
 
-void quit() {
+void run_quit() {
 	exit(0);
 }
 
-void help() {
+void run_help() {
 	printf("Available commands:\n");
 	printf("  quit    - return to shell.\n");
 	printf("  help    - show this message.\n");
 	printf("  version - show version number.\n");
 	printf("  parser  - enter mathematical expression parser.\n");
-	printf("  lexer   - enter lexer debugging mode.\n");
 	printf("  env     - show current environment.\n");
+	printf("  lexer   - enter lexer debugging mode.\n");
+	printf("  eval    - enter postfix evaluator debugging mode.\n");
 }
 
-void version() {
+void run_version() {
 	printf("Version %s\n", VERSION);
 }
 
-void parser() {
+void run_parser() {
 	char* input;
 
 	printf("Type 'quit' to exit parser.\n");
@@ -80,7 +84,13 @@ void parser() {
 	}
 }
 
-void lexer() {
+
+void run_env() {
+	printf("Current environment:\n");
+	print_env(global_env);
+}
+
+void run_lexer() {
 	char* input;
 
 	printf("Type 'quit' to exit lexer debugging mode.\n");
@@ -101,12 +111,30 @@ void lexer() {
 	}
 }
 
-void env() {
-	printf("Current environment:\n");
-	print_env(global_env);
+void run_eval() {
+	char* input;
+
+	printf("Type 'quit' to exit postfix evaluator debugging mode.\n");
+
+	while (1) {
+		input = readline("eval>> ");
+		add_history(input);
+
+		if (strcmp(input, "quit") == 0 || strcmp(input, "q") == 0) {
+			break;
+		}
+
+		word* words = get_words_from_string(input);
+
+		printf("Evaluator stack:\n");
+		print_words(eval_postfix(words, global_env));
+
+		ws_free(words);
+		free(input);
+	}
 }
 
-void debug() {
+void run_debug() {
 	char* input;
 
 	while (1) {
