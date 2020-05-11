@@ -11,16 +11,16 @@ deffun {abs} {x} {
 };
 
 deffun {count_until_1} {x} {
-  echo x;
+  show x;
   
   if {abs(x) - 1} {
-	if {x} {
-	  count_until_1(1-x);
-	} {
+    if {x} {
+      count_until_1(1-x);
+    } {
       count_until_1(0-1-x);
-	}
+    }
   } {}
 };
 
-echo(TICK_TOCK);
+show(TICK_TOCK);
 count_until_1(10);

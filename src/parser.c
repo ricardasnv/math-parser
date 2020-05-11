@@ -160,10 +160,10 @@ word* eval_postfix(word* base, environment* env) {
 
 		if (is_symbol_word(top)) {
 			// if builtin, dispatch to corresponding function
-			if (strcmp(top->sym, "echo") == 0) {
+			if (strcmp(top->sym, "show") == 0) {
 				// echo(word)
 				ws_pop(evalstack);
-				do_echo(evalstack, env);
+				do_show(evalstack, env);
 				continue;
 			} else if (strcmp(top->sym, "env") == 0) {
 				// env{}

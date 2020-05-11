@@ -5,18 +5,18 @@
 #include "error.h"
 #include "parser.h"
 
-const char* BUILTIN_NAMES[NUM_OF_BUILTINS] = {
-	"echo",
-	"env",
-	"defvar",
-	"deffun",
-	"undef",
-	"if"
+builtin_struct BUILTINS[NUM_OF_BUILTINS] = {
+	{"show", do_show},
+	{"env", do_env},
+	{"defvar", do_defvar},
+	{"deffun", do_deffun},
+	{"undef", do_undef},
+	{"if", do_if}
 };
 
 int is_built_in(char* name) {
 	for (int i = 0; i < NUM_OF_BUILTINS; i++) {
-		if (strcmp(name, BUILTIN_NAMES[i]) == 0) {
+		if (strcmp(name, BUILTINS[i].name) == 0) {
 			return 1;
 		}
 	}
@@ -24,9 +24,22 @@ int is_built_in(char* name) {
 	return 0;
 }
 
-void do_echo(word* stack, environment* env) {
+void run_builtin_func(char* name, word* stack, environment* env) {
+	for (int i = 0; i < NUM_OF_BUILTINS; i++) {
+		if (strcmp(name, BUILTINS[i].name) == 0) {
+			(BUILTINS[i].f)(stack, env);
+			return;
+		}
+	}
+
+	char msg[80];
+	snprintf(msg, 80, "Attempted to run non-existent built-in function %s.", name);
+	warning("run_builtin_func", msg);
+}
+
+void do_show(word* stack, environment* env) {
 	if (ws_height(stack) < 1) {
-		warning("do_echo", "Not enough arguments for echo. (expected 1)");
+		warning("do_show", "Not enough arguments for show. (expected 1)");
 		return;
 	}
 

@@ -1,6 +1,8 @@
 deffun {count} {x} {
-	if {x}
-	   {echo(x); count(x-1)}
-	   {0}};
+  if {x} {
+    show(x);
+    count(x-1);
+  } {0}
+};
 
-count(20);
+count(10);

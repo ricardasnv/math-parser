@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-// All operators ordered from highest to lowest precedence
+// {operator, precedence} pairs
 const operator_struct VALID_OPERATORS[NUM_OF_OPERATORS] = {
 	{"=", 0},
 	{"+", 1},
