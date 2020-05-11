@@ -12,9 +12,12 @@ To enter the read-eval-print loop (interactive mode), run the program without
 any command line arguments. To run a program from a file, pass the filepath
 as argv[1].
 
+An expression consists of any number of symbols, numbers or brackets terminated
+by a semicolon (;).
+
 ==== BUILT-IN FUNCTIONS ====
 
->> echo <any word>;
+>> show <any word>;
   Prints the given word to stdout.
 
 >> env;
@@ -57,4 +60,6 @@ REPL>> env;
 REPL>> sum_of_squares 3 4;
   <number, 25.000000>
 REPL>> q
+
+For example programs see the "examples" subdirectory.
 
