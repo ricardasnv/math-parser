@@ -1,0 +1,12 @@
+# Function to calculate the derivative of
+deffun {f} {x} {
+	x^3 + x^2 + x + 1;
+};
+
+# Calculates the derivative of f at x
+deffun {deriv_f} {x} {
+	defvar {dx} 0.00000001;
+	(f(x+dx) - f(x)) / dx;
+};
+
+deriv_f(1);

@@ -1,0 +1,31 @@
+# Function to calculate the derivative of
+deffun {f} {x} {
+	x^3 + x^2 + x + 1;
+};
+
+# Calculates the derivative of f at x
+deffun {deriv_f} {x} {
+	defvar {dx} 0.00000001;
+	(f(x+dx) - f(x)) / dx;
+};
+
+# Integrates f from a to b
+deffun {integrate_f} {a b} {
+	# Do not make too small
+	defvar {dx} 0.01;
+
+	# if a-b > 0 (b > a)
+	if {a - b} {
+		# then integral is 0
+		0;
+	} {
+		# otherwise integrate
+		f(a) * dx + integrate_f(a + dx, b);
+	};
+};
+
+# Should be 3x^2+2x+1 at 2 --> 17
+deriv_f(2);
+
+# Should be ~8.58
+integrate_f(1, 2);

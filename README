@@ -72,7 +72,7 @@ Diagram of the interpreter:
 INPUT ----> LEXER -->--- EVAL -->-- OUTPUT
                     |           |
                     |           |
-		    	    -<- APPLY -<-
+                    -<- APPLY -<-
 
 Stages of evaluation:
 
