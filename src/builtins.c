@@ -7,6 +7,7 @@
 
 const char* BUILTIN_NAMES[NUM_OF_BUILTINS] = {
 	"echo",
+	"env",
 	"defvar",
 	"deffun",
 	"undef",
@@ -33,6 +34,10 @@ void do_echo(word* stack, environment* env) {
 	print_word(w, "");
 	// return nothing
 	//ws_push(stack, w);
+}
+
+void do_env(word* stack, environment* env) {
+	print_env(env);
 }
 
 void do_defvar(word* stack, environment* env) {
@@ -199,15 +204,14 @@ void do_if(word* stack, environment* env) {
 
 	word* result;
 
-	// If value of predicate is 0 when rounded to nearest integer, evaluate consequent
-	// otherwise evaluate alternative
-	if (predicate_val->val > -0.5 && predicate_val->val < 0.5) {
+	// If value of predicate is >0, evaluate consequent
+	if (predicate_val->val > 0) {
 		result = ws_peek(eval_postfix(consequent, env));
 	} else {
+		// otherwise evaluate alternative
 		result = ws_peek(eval_postfix(alternative, env));
 	}
 
-	// return nothing
-	//ws_push(stack, result);
+	ws_push(stack, result);
 }
 

@@ -165,6 +165,11 @@ word* eval_postfix(word* base, environment* env) {
 				ws_pop(evalstack);
 				do_echo(evalstack, env);
 				continue;
+			} else if (strcmp(top->sym, "env") == 0) {
+				// env{}
+				ws_pop(evalstack);
+				do_env(evalstack, env);
+				continue;
 			} else if (strcmp(top->sym, "defvar") == 0) {
 				// defvar({varname}, value)
 				ws_pop(evalstack);
