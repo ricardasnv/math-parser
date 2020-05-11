@@ -1,0 +1,73 @@
+# Floating-point modulo
+deffun {fmod} {x mod} {
+	if {x} {           # x > 0 ?
+		if {mod - x} { # mod - x > 0 ?
+			# Already between 0 and mod
+			x;
+		} {
+			# If x > mod, try x - mod
+			fmod(x - mod, mod);
+		};
+	} {
+		# If x<0, try x + mod
+		fmod(x + mod, mod);
+	};
+};
+
+# Factorial of x (only valid for integer x)
+deffun {factorial} {x} {
+	if {x} {
+		x * factorial(x - 1);
+	} {
+		# if 0 or less, return 1
+		1;
+	};
+};
+
+# Compute sine of x using its Taylor series representation
+deffun {sin} {x} {
+	# How many terms to use
+	defvar {term_num} 15;
+
+	# x modulo 2*pi (for accurate results with large x)
+	defvar {x_mod} fmod(x, 2*3.14159265);
+
+	# Returns the nth term of the series
+	deffun {sin_taylor} {n} {
+		defvar {exponent} (2*n-1);
+		(0-1)^(n-1) * (x_mod^exponent) / factorial(exponent);
+	};
+
+	# Sums the 'it' first terms
+	deffun {sum_terms} {it} {
+		if {it} {
+			# if it>0
+			sin_taylor(it) + sum_terms(it - 1);
+		} {
+			# else
+			0;
+		};
+	};
+
+	sum_terms(term_num);
+};
+
+# Define cos in terms of sin
+deffun {cos} {x} {
+	(1 - (sin x)^2)^0.5;
+};
+
+# Define tan in terms of sin and cos
+deffun {tan} {x} {
+	(sin x) / (cos x);
+};
+
+SIN_10; # The only way to display a string
+sin(10);
+
+COS_10;
+cos(10);
+
+TAN_10;
+tan(10);
+
