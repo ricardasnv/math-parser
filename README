@@ -7,13 +7,15 @@ Expressions can be abstracted using user-defined functions and variables.
 Expressions can either be passed by command-line arguments or entering the
 parser in interactive mode.
 
+Definitions:
+> An expression consists of any number of words terminated by a semicolon (;).
+> A word is a number/symbol/operator/symbol/subexpression (equivalent to
+  "token"). 
+
 ==== USAGE ====
 To enter the read-eval-print loop (interactive mode), run the program without
 any command line arguments. To run a program from a file, pass the filepath
 as argv[1].
-
-An expression consists of any number of symbols, numbers or brackets terminated
-by a semicolon (;).
 
 ==== BUILT-IN FUNCTIONS ====
 
@@ -62,4 +64,37 @@ REPL>> sum_of_squares 3 4;
 REPL>> q
 
 For example programs see the "examples" subdirectory.
+
+==== DETAILS ====
+
+Diagram of the interpreter:
+
+INPUT ----> LEXER -->--- EVAL -->-- OUTPUT
+                    |           |
+                    |           |
+		    	    -<- APPLY -<-
+
+Stages of evaluation:
+
+1. The input string (input in REPL/program file) is first passed through the
+LEXER and broken up into words in the original order and stored in a wordstack
+(ordinary stack data structure).
+2. The wordstack is separated into separate expressions (semicolon-terminated).
+3. Before evaluation the wordstack is converted to postfix notation. For
+example: "1 + 1" becomes "1 1 +", "f(x, y, k*z)" becomes "x y k z * f" and so
+on.
+4. EVAL then reverses the postfix stack so that the first word in comes
+out first (a queue would be more efficient). For example: "pi 2 / sin" becomes
+"sin / 2 pi" (the stack grows to the right, so pi will come out first now).
+5. EVAL then reads from the reversed postfix stack into an evalstack until
+it finds an operator or a symbol bound to a function. The evalstack is then
+passed to APPLY. If no operators/functions are found, then the evalstack is
+sent to OUTPUT.
+6. APPLY pops the function name off the evalstack and sends the remaining
+argstack to step 2 to evaluate its arguments. Once the argstack is evaluated,
+the arguments are popped off and substituted into the body of the function.
+The body with substituted arguments is then sent to step 2.
+
+This cycle continues until EVAL produces an evalstack without any operators
+or functions (possibly never in the case of infinite recursion).
 
