@@ -64,7 +64,7 @@ For example programs see the "examples" subdirectory.
 
 ==== DETAILS ====
 
-Diagram of the interpreter:
+Black-box diagram of the interpreter:
 
 INPUT ----> LEXER -->--- EVAL -->-- OUTPUT
                     |           |
