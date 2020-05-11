@@ -40,7 +40,7 @@ void eval_input(char* input) {
 		word* current_expr = ws_pop(exprs)->expr;
 		word* postfix = infix_to_postfix(current_expr, global_env);
 		word* evaluated = eval_postfix(postfix, global_env);
-		
+
 		if (!ws_isempty(evaluated)) {
 			print_word(ws_peek(evaluated), "");
 		}

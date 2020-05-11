@@ -20,14 +20,12 @@ void init_global_env() {
 	word* e_key = make_symbol_word("e");
 	word* e_val = make_number_word(2.718281828);
 	define_variable(e_key, e_val, global_env);
-
-	// Built-in functions
 }
 
 environment* make_empty_env() {
 	environment* new_env = malloc(sizeof(environment));
 	memset(new_env, 0, sizeof(environment));
-	new_env->type = NONE;
+	new_env->type = START;
 	return new_env;
 }
 
@@ -69,19 +67,16 @@ void define_variable(word* key, word* val, environment* env) {
 	} else {
 		environment* cursor = env;
 
-		// If symbol is already assigned a value, rewrite it
-		while (cursor != NULL) {
-			if (cursor->key != NULL && strcmp(key->sym, cursor->key->sym) == 0) {
-				cursor->val->val = val->val;
+		// Walk the environment
+		while (cursor->next != NULL) {
+			// Do not enter parent env
+			if (cursor->next->type == START) {
+				environment* parent = cursor->next;
+				cursor->next = new_pair;
+				new_pair->next = parent;
 				return;
 			}
 
-			cursor = cursor->next;
-		}
-
-		// Walk the environment a second time
-		cursor = env;
-		while (cursor->next != NULL) {
 			cursor = cursor->next;
 		}
 
@@ -97,24 +92,29 @@ void define_function(word* key, function* f, environment* env) {
 	new_pair->key = key;
 	new_pair->fun = f;
 
+	// If symbol already has a definition, overwrite it
+	environment* resolved = resolve_symbol(key, env);
+	if (resolved != NULL) {
+		resolved->fun = f;
+		return;
+	}
+
+	// Add symbol definition to current env
 	if (env == NULL) {
 		warning("define_function", "env is NULL!");
 	} else {
 		environment* cursor = env;
 
-		// If symbol is already assigned a value, rewrite it
-		while (cursor != NULL) {
-			if (cursor->key != NULL && strcmp(key->sym, cursor->key->sym) == 0) {
-				cursor->fun = f;
+		// Walk the environment
+		while (cursor->next != NULL) {
+			// Do not enter parent env
+			if (cursor->next->type == START) {
+				environment* parent = cursor->next;
+				cursor->next = new_pair;
+				new_pair->next = parent;
 				return;
 			}
 
-			cursor = cursor->next;
-		}
-
-		// Walk the environment a second time
-		cursor = env;
-		while (cursor->next != NULL) {
 			cursor = cursor->next;
 		}
 
@@ -128,7 +128,7 @@ void undef_symbol(word* key, environment* env) {
 	environment* prev = NULL;
 
 	// If only 1 mapping in env, return.
-	// (first mapping is guaranteed to be of type NONE)
+	// (first mapping is guaranteed to be of type START)
 	if (cursor->next == NULL) {
 		return;
 	}
@@ -149,7 +149,7 @@ void print_env(environment* env) {
 
 	while (cursor != NULL) {
 		switch (cursor->type) {
-		case NONE:
+		case START:
 			break;
 		case VARIABLE:
 			printf("variable %s: ", cursor->key->sym); 

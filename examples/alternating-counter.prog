@@ -1,25 +1,37 @@
+# Returns the square of its argument
 deffun {square} {x} {
   x * x;
 };
 
+# Returns the square root of its argument
 deffun {sqrt} {x} {
   x^0.5;
 };
 
+# Returns the absolute value of its argument
 deffun {abs} {x} {
   sqrt(square x);
 };
 
+# Count down from x to 1
+# Prints x and flips the sign of x-1 on each iteration
 deffun {count_until_1} {x} {
   show x;
   
+  # is |x|-1 > 0?
   if {abs(x) - 1} {
+    # if so, is x > 0?
     if {x} {
+	  # if so, recurse with 1-x
       count_until_1(1-x);
     } {
+	  # if not, recurse with -1-x
       count_until_1(0-1-x);
     }
-  } {}
+  } {
+    # if not, return symbol DONE
+    DONE;
+  };
 };
 
 show(TICK_TOCK);

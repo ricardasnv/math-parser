@@ -160,35 +160,9 @@ word* eval_postfix(word* base, environment* env) {
 
 		if (is_symbol_word(top)) {
 			// if builtin, dispatch to corresponding function
-			if (strcmp(top->sym, "show") == 0) {
-				// echo(word)
+			if (is_built_in(top->sym)) {
 				ws_pop(evalstack);
-				do_show(evalstack, env);
-				continue;
-			} else if (strcmp(top->sym, "env") == 0) {
-				// env{}
-				ws_pop(evalstack);
-				do_env(evalstack, env);
-				continue;
-			} else if (strcmp(top->sym, "defvar") == 0) {
-				// defvar({varname}, value)
-				ws_pop(evalstack);
-				do_defvar(evalstack, env);
-				continue;
-			} else if (strcmp(top->sym, "deffun") == 0) {
-				// deffun({funname}, {arg1, arg2, ...}, {body})
-				ws_pop(evalstack);
-				do_deffun(evalstack, env);
-				continue;
-			} else if (strcmp(top->sym, "undef") == 0) {
-				// undef({symname})
-				ws_pop(evalstack);
-				do_undef(evalstack, env);
-				continue;
-			} else if (strcmp(top->sym, "if") == 0) {
-				// if({predicate}, {consequent}, {alternative})
-				ws_pop(evalstack);
-				do_if(evalstack, env);
+				run_builtin_func(top->sym, evalstack, env);
 				continue;
 			}
 
@@ -238,11 +212,12 @@ void apply_function(function* f, word* stack, environment* env) {
 	// Pop the function name off the stack
 	word* function_symbol = ws_pop(stack);
 
-	// Evaluate the arguments
-	word* args = eval_postfix(stack, env);
+	// Add the function to its own local env (to allow recursion)
+	environment* local_env_initial = make_empty_env();
+	link_env(local_env_initial, env);
 
-	// Make a copy of formal_args to avoid altering the function's definition
-	word* formal_args_copy = ws_copy(f->formal_args);
+	// Evaluate the arguments on the stack
+	word* args = eval_postfix(stack, local_env_initial);
 
 	int argc_provided = ws_height(args);
 	int argc_expected = ws_height(f->formal_args);
@@ -254,9 +229,11 @@ void apply_function(function* f, word* stack, environment* env) {
 		return;
 	}
 
-	// Build a local environment with the actual arguments and itself
-	environment* local_env = make_empty_env();
+	// Make a copy of formal_args to avoid altering the function's definition
+	word* formal_args_copy = ws_copy(f->formal_args);
 
+	// Bind actual arguments to the formal arguments and finish building local env
+	environment* local_env = make_empty_env();
 	define_function(function_symbol, f, local_env);
 	for (int i = 0; i < argc_expected; i++) {
 		word* current_formal_arg = ws_pop(formal_args_copy);
@@ -264,13 +241,21 @@ void apply_function(function* f, word* stack, environment* env) {
 		define_variable(current_formal_arg, current_actual_arg, local_env);
 	}
 
-	// link the function's local environment to the parent environment
-	link_env(local_env, env);
+	// Link the function's local environment to the parent environment
+	link_env(local_env, local_env_initial);
 
-	// evaluate the function in its local environment
-	word* result = eval_postfix(f->body, local_env);
+	// Break function up into expressions and evaluate every one in order
+	word* exprs = extract_expressions(f->body);
+	ws_reverse(exprs); // evaluate earlier expressions first
+	word* result = make_base_word(); // keep track of evaluation results
+	while (!ws_isempty(exprs)) {
+		word* expr = ws_pop(exprs)->expr;
+		word* postfix = infix_to_postfix(expr, local_env);
 
-	// push result to stack
+		ws_push(result, ws_peek(eval_postfix(postfix, local_env)));
+	}
+
+	// Return result of last evaluated expression
 	ws_push(stack, ws_peek(result));
 }
 

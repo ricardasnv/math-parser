@@ -7,7 +7,7 @@
 // Linked list of key-val mappings
 typedef struct environment_struct {
 	struct environment_struct* next;
-	enum {NONE, VARIABLE, FUNCTION} type;
+	enum {START, VARIABLE, FUNCTION} type;
 	word* key;
 	union {
 		word* val;     // if variable

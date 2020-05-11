@@ -148,8 +148,6 @@ void do_deffun(word* stack, environment* env) {
 	}
 
 	// Convert body from infix to postfix
-	fbody = infix_to_postfix(fbody, env);
-
 	function* f = make_function(fargs, fbody);
 	define_function(fname, f, env);
 

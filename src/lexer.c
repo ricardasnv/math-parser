@@ -8,6 +8,7 @@
 
 typedef enum lexer_state_enum {
 	SKIPPING,
+	COMMENT,
 	READING_NUMBER,
 	READING_OPERATOR,
 	READING_SYMBOL,
@@ -48,6 +49,12 @@ word* get_words_from_string(char* passed_str) {
 	// Phase 2: react to current state or state change
 	// Phase 3: load current character into buffer (if not in state SKIPPING)
 	for (int i = 0; str[i] != '\0'; i++) {
+		// special case: if comment, skip until first newline character
+		if (state == COMMENT && str[i] != '\n') {
+			strcpy(buffer, "");
+			continue;
+		}
+
 		// ==== PHASE 1 ====
 		prev_state = state;
 		update_lexer_state(str[i], &state);
@@ -95,7 +102,9 @@ word* get_words_from_string(char* passed_str) {
 
 // ==== Private definitions ====
 void update_lexer_state(char c, lexer_state* state) {
-	if (*state != READING_SYMBOL && is_letter(c)) {
+	if (c == '#') {
+		*state = COMMENT;
+	} else if (*state != READING_SYMBOL && is_letter(c)) {
 		*state = READING_SYMBOL;
 	} else if (*state == READING_SYMBOL && (is_letter(c) || is_digit(c))) {
 		*state = READING_SYMBOL;

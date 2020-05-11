@@ -1,8 +1,14 @@
+# Counts from x down to 0
 deffun {count} {x} {
+  # is x > 0?
   if {x} {
+    # if so, print x and call count with x-1
     show(x);
     count(x-1);
-  } {0}
+  } {
+    # if not, return symbol DONE
+    DONE;
+  };
 };
 
 count(10);
