@@ -1,0 +1,23 @@
+# Prints N Fibonacci numbers
+deffun {print_fibonacci} {N} {
+	# Performs single iteration
+	# ('it' keeps track of remaining iteration count)
+	# (a and b are adjacent Fibonacci numbers)
+	deffun {iterate} {a b it} {
+		show(a);
+
+		# If it > 0, do one more iteration
+		# Otherwise return symbol DONE
+		if {it} {
+			defvar {c} (a + b);
+			iterate(b, c, it-1);
+		} {
+			DONE;
+		};
+	};
+
+	# Start from 0, 1
+	iterate(0, 1, N);
+};
+
+print_fibonacci 10;

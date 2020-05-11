@@ -1,6 +1,6 @@
-==== MATHEMATICAL EXPRESSION PARSER ====
+==== MATHEMATICAL EXPRESSION PARSING LANGUAGE ====
 
-Takes an expression like "1 - (0.5 * 1.1)^2" and evaluates it.
+Takes an expression like "1 - (0.5 * 1.1)^2;" and evaluates it.
 Supported infix operators: + - * / ^
 Expressions can be abstracted using user-defined functions and variables.
 
