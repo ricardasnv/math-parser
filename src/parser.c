@@ -251,7 +251,6 @@ void apply_function(function* f, word* stack, environment* env) {
 	while (!ws_isempty(exprs)) {
 		word* expr = ws_pop(exprs)->expr;
 		word* postfix = infix_to_postfix(expr, local_env);
-
 		ws_push(result, ws_peek(eval_postfix(postfix, local_env)));
 	}
 
