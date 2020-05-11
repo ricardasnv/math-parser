@@ -4,9 +4,6 @@ Takes an expression like "1 - (0.5 * 1.1)^2;" and evaluates it.
 Supported infix operators: + - * / ^
 Expressions can be abstracted using user-defined functions and variables.
 
-Expressions can either be passed by command-line arguments or entering the
-parser in interactive mode.
-
 Definitions:
 > An expression consists of any number of words terminated by a semicolon (;).
 > A word is a number/symbol/operator/symbol/subexpression (equivalent to
