@@ -14,7 +14,7 @@ const operator_struct VALID_OPERATORS[NUM_OF_OPERATORS] = {
 
 int get_precedence(word* w) {
 	if (w->type != OPERATOR) {
-		printf("WARNING: non-operator of type %d given to get_precedence.\n", w->type);
+		//printf("WARNING: non-operator of type %d given to get_precedence.\n", w->type);
 		return -1;
 	}
 
