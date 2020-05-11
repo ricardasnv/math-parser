@@ -1,0 +1,6 @@
+deffun {count} {x} {
+	if {x}
+	   {echo(x); count(x-1)}
+	   {0}};
+
+count(5);
