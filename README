@@ -7,6 +7,11 @@ Expressions can be abstracted using user-defined functions and variables.
 Expressions can either be passed by command-line arguments or entering the
 parser in interactive mode.
 
+==== USAGE ====
+To enter the read-eval-print loop (interactive mode), run the program without
+any command line arguments. To run a program from a file, pass the filepath
+as argv[1].
+
 ==== BUILT-IN FUNCTIONS ====
 
 >> echo <any word>;
