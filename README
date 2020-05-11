@@ -1,4 +1,4 @@
-MATHEMATICAL EXPRESSION PARSER
+==== MATHEMATICAL EXPRESSION PARSER ====
 
 Takes an expression like "1 - (0.5 * 1.1)^2" and evaluates it.
 Supported infix operators: + - * / ^
@@ -7,12 +7,35 @@ Expressions can be abstracted using user-defined functions and variables.
 Expressions can either be passed by command-line arguments or entering the
 parser in interactive mode.
 
-BUILDING:
+==== BUILT-IN FUNCTIONS ====
+
+>> echo <any word>;
+  Prints the given word to stdout.
+
+>> env;
+  Prints the current environment.
+
+>> defvar {<sym, name>} <any expression>;
+  Assigns the given expression to the symbol described by 'name'.
+
+>> deffun {<sym, name>} {<sym, arg1>, <sym, arg2>, ...} {body};
+  Assigns a function with the given body and formal arguments to the symbol
+  described by 'name'.
+
+>> undef {<sym, name>};
+  Removes the definition of 'name' from the current environment.
+
+>> if {<expr, predicate>} {<expr, consequent>} {<expr, alternative>};
+  Evaluates the predicate. If it is positive, evaluates the consequent and
+  returns the result. It the predicate evaluated to a negative value, evaluates
+  the alternative and returns the result.
+
+==== BUILDING ====
 
 Dependencies: gcc, GNU make, GNU readline.
 Run make in the root directory to compile.
 
-EXAMPLE SESSION:
+==== EXAMPLE SESSION ====
 
 REPL>> env;
   variable pi: <number, 3.141593>
