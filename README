@@ -9,6 +9,11 @@ Definitions:
 > A word is a number/symbol/operator/symbol/subexpression (equivalent to
   "token"). 
 
+==== BUILDING ====
+
+Dependencies: gcc, GNU make, GNU readline.
+Run make in the root directory to compile.
+
 ==== USAGE ====
 To enter the read-eval-print loop (interactive mode), run the program without
 any command line arguments. To run a program from a file, pass the filepath
@@ -36,11 +41,6 @@ as argv[1].
   Evaluates the predicate. If it is positive, evaluates the consequent and
   returns the result. It the predicate evaluated to a negative value, evaluates
   the alternative and returns the result.
-
-==== BUILDING ====
-
-Dependencies: gcc, GNU make, GNU readline.
-Run make in the root directory to compile.
 
 ==== EXAMPLE SESSION ====
 
