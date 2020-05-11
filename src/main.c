@@ -3,7 +3,6 @@
 #include <string.h>
 #include <editline/readline.h>
 
-#include "config.h"
 #include "parser.h"
 #include "lexer.h"
 #include "commands.h"
@@ -18,13 +17,12 @@ int main(int argc, char** argv) {
 	if (argc == 2) {
 		word* words = get_words_from_string(argv[1]);
 		word* postfix = infix_to_postfix(words, global_env);
-		printf("%f\n", ws_peek(eval_postfix(postfix, global_env))->val);
+		eval_postfix(postfix, global_env);
 		ws_free(words);
 		ws_free(postfix);
 		return 0;
 	}
 
-	printf("Version %s - interactive mode\n", VERSION);
 	printf("Type \'help\' for usage instructions.\n");
 
 	while (1) {

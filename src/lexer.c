@@ -157,7 +157,7 @@ int is_part_of_operator(char c) {
 }
 
 int is_separator(char c) {
-	if (strstr("();,", char_to_str(c)) != NULL) {
+	if (strstr("(){};,", char_to_str(c)) != NULL) {
 		return 1;
 	}
 
@@ -170,6 +170,10 @@ int separator_type(char c) {
 		return LBRACKET;
 	case ')':
 		return RBRACKET;
+	case '{':
+		return LEXPRBR;
+	case '}':
+		return REXPRBR;
 	case ',':
 		return ARGSEP;
 	case ';':

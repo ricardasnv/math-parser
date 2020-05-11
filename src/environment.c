@@ -153,7 +153,7 @@ void print_env(environment* env) {
 			break;
 		case VARIABLE:
 			printf("variable %s: ", cursor->key->sym); 
-			print_word(cursor->val);
+			print_word(cursor->val, "");
 			break;
 		case FUNCTION:
 			printf("function %s of %d arguments\n", cursor->key->sym, ws_height(cursor->fun->formal_args)); 

@@ -45,6 +45,14 @@ word* make_separator_word(int sep) {
 	return w;
 }
 
+word* make_expr_word(word* expr) {
+	word* w = malloc(sizeof(word));
+	w->type = EXPR;
+	w->expr = expr;
+	w->next = NULL;
+	return w;
+}
+
 int is_base_word(word* w) {
 	return w->type == BASE;
 }
@@ -65,8 +73,12 @@ int is_separator_word(word* w) {
 	return w->type == SEPARATOR;
 }
 
+int is_expr_word(word* w) {
+	return w->type == EXPR;
+}
+
 int ws_isempty(word* base) {
-	return base->type == BASE && base->next == NULL;
+	return ws_height(base) == 0 || is_base_word(ws_peek(base));
 }
 
 int ws_height(word* base) {
@@ -151,10 +163,13 @@ void ws_reverse(word* base) {
 	free(tmp_base);
 }
 
-void print_word(word* w) {
+void print_word(word* w, char* indent) {
 	char repr[32];
+	char* deeper_indent = malloc((2 + strlen(indent)) * sizeof(char));
+	strcpy(deeper_indent, indent);
+	strcat(deeper_indent, "  ");
 	
-	printf("<");
+	printf("%s<", indent);
 
 	switch (w->type) {
 	case BASE:
@@ -172,9 +187,15 @@ void print_word(word* w) {
 	case SEPARATOR:
 		if (w->sep == LBRACKET) strcpy(repr, "left bracket");
 		if (w->sep == RBRACKET) strcpy(repr, "right bracket");
+		if (w->sep == LEXPRBR) strcpy(repr, "left expr bracket");
+		if (w->sep == REXPRBR) strcpy(repr, "right expr bracket");
 		if (w->sep == ARGSEP) strcpy(repr, "argument separator");
 		if (w->sep == EXPRSEP) strcpy(repr, "expression separator");
 		printf("%s", repr);
+		break;
+	case EXPR:
+		printf("expression\n");
+		print_words(w->expr, deeper_indent);
 		break;
 	default:
 		printf("unknown type");
@@ -184,11 +205,11 @@ void print_word(word* w) {
 	printf(">\n");
 }
 
-void print_words(word* list) {
+void print_words(word* list, char* indent) {
 	word* cursor = list;
 
 	while (cursor != NULL) {
-		print_word(cursor);
+		print_word(cursor, indent);
 		cursor = cursor->next;
 	}
 }

@@ -7,27 +7,60 @@
 #include "word.h"
 #include "operators.h"
 #include "error.h"
+#include "builtins.h"
 
 // shorthands
 int is_left_bracket(word* w);
 int is_right_bracket(word* w);
+int is_left_expr_bracket(word* w);
+int is_right_expr_bracket(word* w);
+
+// Reverse wordstack and dispatch to revinfix_to_postfix
+// NOTE: does not modify passed wordstack
+word* infix_to_postfix(word* base, environment* env) {
+	word* base_copy = ws_copy(base);
+	ws_reverse(base_copy);
+	return revinfix_to_postfix(base_copy, env);
+}
 
 // Convert infix to postfix using the shunting yard algorithm
-// NOTE: does not modify passed wordstack
-word* infix_to_postfix(word* passed_base, environment* env) {
-	word* infix = ws_copy(passed_base);
+// NOTE: modifies passed wordstack
+word* revinfix_to_postfix(word* infix, environment* env) {
 	word* postfix = make_base_word();
 	word* opstack = make_base_word();
-
-	ws_reverse(infix);
 
 	while (!ws_isempty(infix)) {
 		word* w = ws_pop(infix);
 
-		// determine word type
-		if (is_number_word(w)) {
+		if (is_left_expr_bracket(w)) {
+			word* subexpr = make_base_word();
+			int bracket_depth = 1;
+			
+			while (bracket_depth > 0) {
+				word* curr = ws_pop(infix);
+
+				if (is_left_expr_bracket(curr)) {
+					bracket_depth++;
+				} else if (is_right_expr_bracket(curr)) {
+					bracket_depth--;
+				}
+
+				ws_push(subexpr, curr);
+			}
+
+			// pop off the leftover right bracket
+			ws_pop(subexpr);
+
+			ws_push(postfix, make_expr_word(subexpr));
+		} else if (is_number_word(w)) {
 			ws_push(postfix, w);
 		} else if (is_symbol_word(w)) {
+			// if built-in, treat as function
+			if (is_built_in(w->sym)) {
+				ws_push(opstack, w);
+				continue;
+			}
+
 			// attempt to resolve
 			environment* result = resolve_symbol(w, env);
 
@@ -49,7 +82,7 @@ word* infix_to_postfix(word* passed_base, environment* env) {
 			if (is_left_bracket(ws_peek(opstack))) {
 				ws_pop(opstack);
 			} else {
-				warning("infix_to_postfix", "Surplus right bracket.");
+				warning("revinfix_to_postfix", "Surplus right bracket.");
 			}
 		} else if (is_separator_word(w) && (w->sep == EXPRSEP || w->sep == ARGSEP)) {
 			// if found expression/argument separator, flush the operator stack
@@ -73,16 +106,44 @@ word* infix_to_postfix(word* passed_base, environment* env) {
 		word* w = ws_pop(opstack);
 
 		if (is_left_bracket(w)) {
-			warning("infix_to_postfix", "Surplus left bracket.");
+			warning("revinfix_to_postfix", "Surplus left bracket.");
 			continue;
 		}
 
 		ws_push(postfix, w);
 	}
 
-	ws_free(infix);
-
 	return postfix;
+}
+
+word* extract_expressions(word* input) {
+	word* infix = ws_copy(input);
+	word* exprlist = make_base_word();
+	word* expr = make_base_word();
+
+	ws_reverse(infix);
+
+	int expr_depth = 0;
+
+	while (!ws_isempty(infix)) {
+		word* w = ws_pop(infix);
+
+		if (is_left_expr_bracket(w)) {
+			expr_depth++;
+		} else if (is_right_expr_bracket(w)) {
+			expr_depth--;
+		}
+
+		if (expr_depth == 0 && is_separator_word(w) && w->sep == EXPRSEP) {
+			ws_push(exprlist, make_expr_word(expr));
+			expr = make_base_word();
+			continue;
+		}
+
+		ws_push(expr, w);
+	}
+
+	return exprlist;
 }
 
 // Evaluates a given postfix expression and returns the resulting evalstack
@@ -98,6 +159,34 @@ word* eval_postfix(word* base, environment* env) {
 		ws_push(evalstack, top);
 
 		if (is_symbol_word(top)) {
+			// if builtin, dispatch to corresponding function
+			if (strcmp(top->sym, "echo") == 0) {
+				// echo(word)
+				ws_pop(evalstack);
+				do_echo(evalstack, env);
+				continue;
+			} else if (strcmp(top->sym, "defvar") == 0) {
+				// defvar({varname}, value)
+				ws_pop(evalstack);
+				do_defvar(evalstack, env);
+				continue;
+			} else if (strcmp(top->sym, "deffun") == 0) {
+				// deffun({funname}, {arg1, arg2, ...}, {body})
+				ws_pop(evalstack);
+				do_deffun(evalstack, env);
+				continue;
+			} else if (strcmp(top->sym, "undef") == 0) {
+				// undef({symname})
+				ws_pop(evalstack);
+				do_undef(evalstack, env);
+				continue;
+			} else if (strcmp(top->sym, "if") == 0) {
+				// if({predicate}, {consequent}, {alternative})
+				ws_pop(evalstack);
+				do_if(evalstack, env);
+				continue;
+			}
+
 			// lookup symbol in current environment
 			environment* result = resolve_symbol(top, env);
 
@@ -160,9 +249,10 @@ void apply_function(function* f, word* stack, environment* env) {
 		return;
 	}
 
-	// Build a local environment with the actual arguments
+	// Build a local environment with the actual arguments and itself
 	environment* local_env = make_empty_env();
 
+	define_function(function_symbol, f, local_env);
 	for (int i = 0; i < argc_expected; i++) {
 		word* current_formal_arg = ws_pop(formal_args_copy);
 		word* current_actual_arg = ws_pop(stack);
@@ -279,5 +369,13 @@ int is_left_bracket(word* w) {
 
 int is_right_bracket(word* w) {
 	return w->type == SEPARATOR && w->sep == RBRACKET;
+}
+
+int is_left_expr_bracket(word* w) {
+	return w->type == SEPARATOR && w->sep == LEXPRBR;
+}
+
+int is_right_expr_bracket(word* w) {
+	return w->type == SEPARATOR && w->sep == REXPRBR;
 }
 
