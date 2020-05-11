@@ -7,3 +7,26 @@ Expressions can be abstracted using user-defined functions and variables.
 Expressions can either be passed by command-line arguments or entering the
 parser in interactive mode.
 
+BUILDING:
+
+Dependencies: gcc, GNU make, GNU readline.
+Run make in the root directory to compile.
+
+EXAMPLE SESSION:
+
+REPL>> env;
+  variable pi: <number, 3.141593>
+  variable e: <number, 2.718282>
+REPL>> pi;
+  <number, 3.141593>
+REPL>> 2*pi;
+  <number, 6.283185>
+REPL>> deffun {sum_of_squares} {x y} {x^2 + y^2};
+REPL>> env;
+  variable pi: <number, 3.141593>
+  variable e: <number, 2.718282>
+  function sum_of_squares of 2 arguments
+REPL>> sum_of_squares 3 4;
+  <number, 25.000000>
+REPL>> q
+
