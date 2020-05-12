@@ -95,3 +95,11 @@ The body with substituted arguments is then sent to step 2.
 This cycle continues until EVAL produces an evalstack without any operators
 or functions (possibly never in the case of infinite recursion).
 
+A significant drawback is that evaluating the arguments before substituting
+them into a function makes passing functions as arguments impossible. Example:
+
+REPL>> deffun {y} {x} {x^2;};
+REPL>> deffun {deriv} {f x} {(f(x+0.1) - f(x)) / 0.1;};
+REPL>> deriv(y, 1);
+WARNING: apply_function: Not enough arguments to function y. (expected 1, provided 0)
+
